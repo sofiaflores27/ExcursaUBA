@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PlusIcon, Calendar, Clock, Users, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,35 +19,7 @@ interface Excursion {
 }
 
 export default function ExcursaUBAPage() {
-  const [excursions, setExcursions] = useState<Excursion[]>([
-    {
-      id: '1',
-      title: 'Parque de la Memoria',
-      numStudents: 34,
-      responsibleAdults: [
-        { name: 'Mariela', role: 'Profesora' },
-        { name: 'Juan', role: 'Preceptor' },
-        { name: 'Lucas', role: 'Profesor' },
-        { name: 'Carlos', role: 'Preceptor' },
-      ],
-      date: '11/07',
-      time: '11:00hs',
-    },
-    {
-      id: '2',
-      title: 'Laboratorio Cassara',
-      numStudents: 45,
-      responsibleAdults: [
-        { name: 'Belen', role: 'Profesora' },
-        { name: 'Diana', role: 'Preceptora' },
-        { name: 'Emanuel', role: 'Profesor' },
-        { name: 'Esteban', role: 'Preceptor' },
-      ],
-      date: '01/05',
-      time: '12:00hs',
-    },
-  ])
-
+  const [excursions, setExcursions] = useState<Excursion[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newExcursion, setNewExcursion] = useState({
     title: '',
@@ -58,6 +30,24 @@ export default function ExcursaUBAPage() {
 
   const [responsibleAdults, setResponsibleAdults] = useState<{ name: string; role: string }[]>([])
   const [currentAdult, setCurrentAdult] = useState({ name: '', role: '' })
+
+  // Cargar excursiones desde PocketBase
+  useEffect(() => {
+    fetch("http://127.0.0.1:8090/api/collections/Salidas/records?page=1&perPage=30")
+      .then(res => res.json())
+      .then(data => {
+        const parsed = data.items.map((item: any) => ({
+          id: item.id,
+          title: item.Titulo_Salida,
+          numStudents: 0, // Puedes agregar este campo si quieres usarlo
+          responsibleAdults: [{ name: item.Responsable, role: item.Rol_Reponsable }],
+          date: item.Fecha_Salida,
+          time: item.Horario_Salida,
+        }))
+        setExcursions(parsed)
+      })
+      .catch(console.error)
+  }, [])
 
   const handleAddAdult = () => {
     if (currentAdult.name && currentAdult.role) {
@@ -72,18 +62,37 @@ export default function ExcursaUBAPage() {
 
   const handleAddExcursion = () => {
     if (newExcursion.title && newExcursion.numStudents && newExcursion.date && newExcursion.time) {
-      const excursion: Excursion = {
-        id: Date.now().toString(),
-        title: newExcursion.title,
-        numStudents: parseInt(newExcursion.numStudents),
-        responsibleAdults: responsibleAdults,
-        date: newExcursion.date,
-        time: newExcursion.time,
-      }
-      setExcursions([...excursions, excursion])
-      setNewExcursion({ title: '', numStudents: '', date: '', time: '' })
-      setResponsibleAdults([])
-      setIsDialogOpen(false)
+      fetch("http://127.0.0.1:8090/api/collections/Salidas/records", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Fecha_Salida: newExcursion.date,
+          Horario_Salida: newExcursion.time,
+          Responsable: responsibleAdults[0]?.name || "",
+          Rol_Reponsable: responsibleAdults[0]?.role || "",
+          Titulo_Salida: newExcursion.title,
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          const newItem: Excursion = {
+            id: data.id,
+            title: data.Titulo_Salida,
+            numStudents: 0,
+            responsibleAdults: [
+              { name: data.Responsable, role: data.Rol_Reponsable }
+            ],
+            date: data.Fecha_Salida,
+            time: data.Horario_Salida
+          }
+          setExcursions([...excursions, newItem])
+          setNewExcursion({ title: '', numStudents: '', date: '', time: '' })
+          setResponsibleAdults([])
+          setIsDialogOpen(false)
+        })
+        .catch(console.error)
     }
   }
 

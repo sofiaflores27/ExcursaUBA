@@ -762,58 +762,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 function ExcursaUBAPage() {
     _s();
-    const [excursions, setExcursions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([
-        {
-            id: '1',
-            title: 'Parque de la Memoria',
-            numStudents: 34,
-            responsibleAdults: [
-                {
-                    name: 'Mariela',
-                    role: 'Profesora'
-                },
-                {
-                    name: 'Juan',
-                    role: 'Preceptor'
-                },
-                {
-                    name: 'Lucas',
-                    role: 'Profesor'
-                },
-                {
-                    name: 'Carlos',
-                    role: 'Preceptor'
-                }
-            ],
-            date: '11/07',
-            time: '11:00hs'
-        },
-        {
-            id: '2',
-            title: 'Laboratorio Cassara',
-            numStudents: 45,
-            responsibleAdults: [
-                {
-                    name: 'Belen',
-                    role: 'Profesora'
-                },
-                {
-                    name: 'Diana',
-                    role: 'Preceptora'
-                },
-                {
-                    name: 'Emanuel',
-                    role: 'Profesor'
-                },
-                {
-                    name: 'Esteban',
-                    role: 'Preceptor'
-                }
-            ],
-            date: '01/05',
-            time: '12:00hs'
-        }
-    ]);
+    const [excursions, setExcursions] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [isDialogOpen, setIsDialogOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [newExcursion, setNewExcursion] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])({
         title: '',
@@ -826,6 +775,33 @@ function ExcursaUBAPage() {
         name: '',
         role: ''
     });
+    // Cargar excursiones desde PocketBase
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "ExcursaUBAPage.useEffect": ()=>{
+            fetch("http://127.0.0.1:8090/api/collections/Salidas/records?page=1&perPage=30").then({
+                "ExcursaUBAPage.useEffect": (res)=>res.json()
+            }["ExcursaUBAPage.useEffect"]).then({
+                "ExcursaUBAPage.useEffect": (data)=>{
+                    const parsed = data.items.map({
+                        "ExcursaUBAPage.useEffect.parsed": (item)=>({
+                                id: item.id,
+                                title: item.Titulo_Salida,
+                                numStudents: 0,
+                                responsibleAdults: [
+                                    {
+                                        name: item.Responsable,
+                                        role: item.Rol_Reponsable
+                                    }
+                                ],
+                                date: item.Fecha_Salida,
+                                time: item.Horario_Salida
+                            })
+                    }["ExcursaUBAPage.useEffect.parsed"]);
+                    setExcursions(parsed);
+                }
+            }["ExcursaUBAPage.useEffect"]).catch(console.error);
+        }
+    }["ExcursaUBAPage.useEffect"], []);
     const handleAddAdult = ()=>{
         if (currentAdult.name && currentAdult.role) {
             setResponsibleAdults([
@@ -843,26 +819,45 @@ function ExcursaUBAPage() {
     };
     const handleAddExcursion = ()=>{
         if (newExcursion.title && newExcursion.numStudents && newExcursion.date && newExcursion.time) {
-            const excursion = {
-                id: Date.now().toString(),
-                title: newExcursion.title,
-                numStudents: parseInt(newExcursion.numStudents),
-                responsibleAdults: responsibleAdults,
-                date: newExcursion.date,
-                time: newExcursion.time
-            };
-            setExcursions([
-                ...excursions,
-                excursion
-            ]);
-            setNewExcursion({
-                title: '',
-                numStudents: '',
-                date: '',
-                time: ''
-            });
-            setResponsibleAdults([]);
-            setIsDialogOpen(false);
+            fetch("http://127.0.0.1:8090/api/collections/Salidas/records", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    Fecha_Salida: newExcursion.date,
+                    Horario_Salida: newExcursion.time,
+                    Responsable: responsibleAdults[0]?.name || "",
+                    Rol_Reponsable: responsibleAdults[0]?.role || "",
+                    Titulo_Salida: newExcursion.title
+                })
+            }).then((res)=>res.json()).then((data)=>{
+                const newItem = {
+                    id: data.id,
+                    title: data.Titulo_Salida,
+                    numStudents: 0,
+                    responsibleAdults: [
+                        {
+                            name: data.Responsable,
+                            role: data.Rol_Reponsable
+                        }
+                    ],
+                    date: data.Fecha_Salida,
+                    time: data.Horario_Salida
+                };
+                setExcursions([
+                    ...excursions,
+                    newItem
+                ]);
+                setNewExcursion({
+                    title: '',
+                    numStudents: '',
+                    date: '',
+                    time: ''
+                });
+                setResponsibleAdults([]);
+                setIsDialogOpen(false);
+            }).catch(console.error);
         }
     };
     const cardColors = [
@@ -888,7 +883,7 @@ function ExcursaUBAPage() {
                                     className: "h-16 w-16 md:h-20 md:w-20"
                                 }, void 0, false, {
                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                    lineNumber: 103,
+                                    lineNumber: 112,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -896,13 +891,13 @@ function ExcursaUBAPage() {
                                     children: "ExcursaUBA"
                                 }, void 0, false, {
                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                    lineNumber: 108,
+                                    lineNumber: 117,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                            lineNumber: 102,
+                            lineNumber: 111,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -910,7 +905,7 @@ function ExcursaUBAPage() {
                             children: "Sistema de organización de viajes y salidas grupales - Escuela Técnica UBA"
                         }, void 0, false, {
                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                            lineNumber: 112,
+                            lineNumber: 121,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -924,18 +919,18 @@ function ExcursaUBAPage() {
                                 }
                             }, void 0, false, {
                                 fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                lineNumber: 116,
+                                lineNumber: 125,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                            lineNumber: 115,
+                            lineNumber: 124,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                    lineNumber: 101,
+                    lineNumber: 110,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -950,12 +945,12 @@ function ExcursaUBAPage() {
                                         children: excursion.title
                                     }, void 0, false, {
                                         fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                        lineNumber: 132,
+                                        lineNumber: 141,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                    lineNumber: 131,
+                                    lineNumber: 140,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -971,7 +966,7 @@ function ExcursaUBAPage() {
                                                             className: "h-6 w-6 text-white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 140,
+                                                            lineNumber: 149,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -982,7 +977,7 @@ function ExcursaUBAPage() {
                                                                     children: "N° Alumnos:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 142,
+                                                                    lineNumber: 151,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -990,26 +985,26 @@ function ExcursaUBAPage() {
                                                                     children: excursion.numStudents
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 143,
+                                                                    lineNumber: 152,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 141,
+                                                            lineNumber: 150,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 139,
+                                                    lineNumber: 148,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "h-24 w-[2px] bg-white/30"
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 148,
+                                                    lineNumber: 157,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1020,7 +1015,7 @@ function ExcursaUBAPage() {
                                                             children: "Adultos Responsables:"
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 152,
+                                                            lineNumber: 161,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1035,24 +1030,24 @@ function ExcursaUBAPage() {
                                                                     ]
                                                                 }, index, true, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 157,
+                                                                    lineNumber: 166,
                                                                     columnNumber: 25
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 155,
+                                                            lineNumber: 164,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 151,
+                                                    lineNumber: 160,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 137,
+                                            lineNumber: 146,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1065,7 +1060,7 @@ function ExcursaUBAPage() {
                                                             className: "h-5 w-5 text-white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 167,
+                                                            lineNumber: 176,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1076,7 +1071,7 @@ function ExcursaUBAPage() {
                                                                     children: "Fecha:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 169,
+                                                                    lineNumber: 178,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1084,26 +1079,26 @@ function ExcursaUBAPage() {
                                                                     children: excursion.date
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 170,
+                                                                    lineNumber: 179,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 168,
+                                                            lineNumber: 177,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 166,
+                                                    lineNumber: 175,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "h-16 w-[2px] bg-white/30"
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 175,
+                                                    lineNumber: 184,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1113,7 +1108,7 @@ function ExcursaUBAPage() {
                                                             className: "h-5 w-5 text-white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 178,
+                                                            lineNumber: 187,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1124,7 +1119,7 @@ function ExcursaUBAPage() {
                                                                     children: "Horario:"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 180,
+                                                                    lineNumber: 189,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1132,42 +1127,42 @@ function ExcursaUBAPage() {
                                                                     children: excursion.time
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 181,
+                                                                    lineNumber: 190,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 179,
+                                                            lineNumber: 188,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 177,
+                                                    lineNumber: 186,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 165,
+                                            lineNumber: 174,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                    lineNumber: 136,
+                                    lineNumber: 145,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, excursion.id, true, {
                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                            lineNumber: 127,
+                            lineNumber: 136,
                             columnNumber: 13
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                    lineNumber: 125,
+                    lineNumber: 134,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -1184,19 +1179,19 @@ function ExcursaUBAPage() {
                                         className: "mr-2 h-6 w-6"
                                     }, void 0, false, {
                                         fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                        lineNumber: 196,
+                                        lineNumber: 205,
                                         columnNumber: 15
                                     }, this),
                                     "Añadir Nueva Excursión..."
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                lineNumber: 192,
+                                lineNumber: 201,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                            lineNumber: 191,
+                            lineNumber: 200,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -1208,20 +1203,20 @@ function ExcursaUBAPage() {
                                             children: "Nueva Excursión"
                                         }, void 0, false, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 202,
+                                            lineNumber: 211,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogDescription"], {
                                             children: "Ingresa los detalles de la nueva excursión para los estudiantes de la Escuela Técnica UBA."
                                         }, void 0, false, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 203,
+                                            lineNumber: 212,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                    lineNumber: 201,
+                                    lineNumber: 210,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1235,7 +1230,7 @@ function ExcursaUBAPage() {
                                                     children: "Nombre de la Excursión"
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 210,
+                                                    lineNumber: 219,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1248,13 +1243,13 @@ function ExcursaUBAPage() {
                                                         })
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 211,
+                                                    lineNumber: 220,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 209,
+                                            lineNumber: 218,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1265,7 +1260,7 @@ function ExcursaUBAPage() {
                                                     children: "Número de Alumnos"
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 221,
+                                                    lineNumber: 230,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1279,13 +1274,13 @@ function ExcursaUBAPage() {
                                                         })
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 222,
+                                                    lineNumber: 231,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 220,
+                                            lineNumber: 229,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1296,7 +1291,7 @@ function ExcursaUBAPage() {
                                                     children: "Adultos Responsables"
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 234,
+                                                    lineNumber: 243,
                                                     columnNumber: 17
                                                 }, this),
                                                 responsibleAdults.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1313,7 +1308,7 @@ function ExcursaUBAPage() {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 244,
+                                                                    lineNumber: 253,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1324,23 +1319,23 @@ function ExcursaUBAPage() {
                                                                         className: "h-4 w-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                        lineNumber: 252,
+                                                                        lineNumber: 261,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 247,
+                                                                    lineNumber: 256,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, index, true, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 240,
+                                                            lineNumber: 249,
                                                             columnNumber: 23
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 238,
+                                                    lineNumber: 247,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1354,7 +1349,7 @@ function ExcursaUBAPage() {
                                                                     children: "Nombre"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 262,
+                                                                    lineNumber: 271,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1367,13 +1362,13 @@ function ExcursaUBAPage() {
                                                                         })
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 263,
+                                                                    lineNumber: 272,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 261,
+                                                            lineNumber: 270,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1384,7 +1379,7 @@ function ExcursaUBAPage() {
                                                                     children: "Rol"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 273,
+                                                                    lineNumber: 282,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -1400,12 +1395,12 @@ function ExcursaUBAPage() {
                                                                                 placeholder: "Selecciona un rol"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                                lineNumber: 281,
+                                                                                lineNumber: 290,
                                                                                 columnNumber: 25
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                            lineNumber: 280,
+                                                                            lineNumber: 289,
                                                                             columnNumber: 23
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -1415,7 +1410,7 @@ function ExcursaUBAPage() {
                                                                                     children: "Profesor"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                                    lineNumber: 284,
+                                                                                    lineNumber: 293,
                                                                                     columnNumber: 25
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -1423,7 +1418,7 @@ function ExcursaUBAPage() {
                                                                                     children: "Profesora"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                                    lineNumber: 285,
+                                                                                    lineNumber: 294,
                                                                                     columnNumber: 25
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -1431,7 +1426,7 @@ function ExcursaUBAPage() {
                                                                                     children: "Preceptor"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                                    lineNumber: 286,
+                                                                                    lineNumber: 295,
                                                                                     columnNumber: 25
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -1439,7 +1434,7 @@ function ExcursaUBAPage() {
                                                                                     children: "Preceptora"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                                    lineNumber: 287,
+                                                                                    lineNumber: 296,
                                                                                     columnNumber: 25
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -1447,7 +1442,7 @@ function ExcursaUBAPage() {
                                                                                     children: "Coordinador"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                                    lineNumber: 288,
+                                                                                    lineNumber: 297,
                                                                                     columnNumber: 25
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -1455,25 +1450,25 @@ function ExcursaUBAPage() {
                                                                                     children: "Coordinadora"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                                    lineNumber: 289,
+                                                                                    lineNumber: 298,
                                                                                     columnNumber: 25
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                            lineNumber: 283,
+                                                                            lineNumber: 292,
                                                                             columnNumber: 23
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 274,
+                                                                    lineNumber: 283,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 272,
+                                                            lineNumber: 281,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1487,26 +1482,26 @@ function ExcursaUBAPage() {
                                                                     className: "mr-2 h-4 w-4"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                                    lineNumber: 300,
+                                                                    lineNumber: 309,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 "Agregar Adulto"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 293,
+                                                            lineNumber: 302,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 260,
+                                                    lineNumber: 269,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 233,
+                                            lineNumber: 242,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1520,7 +1515,7 @@ function ExcursaUBAPage() {
                                                             children: "Fecha"
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 308,
+                                                            lineNumber: 317,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1533,13 +1528,13 @@ function ExcursaUBAPage() {
                                                                 })
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 309,
+                                                            lineNumber: 318,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 307,
+                                                    lineNumber: 316,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1550,7 +1545,7 @@ function ExcursaUBAPage() {
                                                             children: "Horario"
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 319,
+                                                            lineNumber: 328,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1563,25 +1558,25 @@ function ExcursaUBAPage() {
                                                                 })
                                                         }, void 0, false, {
                                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                            lineNumber: 320,
+                                                            lineNumber: 329,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                                    lineNumber: 318,
+                                                    lineNumber: 327,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 306,
+                                            lineNumber: 315,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                    lineNumber: 208,
+                                    lineNumber: 217,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -1592,7 +1587,7 @@ function ExcursaUBAPage() {
                                             children: "Cancelar"
                                         }, void 0, false, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 332,
+                                            lineNumber: 341,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$excursa$2d$uba$2d$application$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1600,40 +1595,40 @@ function ExcursaUBAPage() {
                                             children: "Agregar Excursión"
                                         }, void 0, false, {
                                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                            lineNumber: 335,
+                                            lineNumber: 344,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                                    lineNumber: 331,
+                                    lineNumber: 340,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/excursa-uba-application/app/page.tsx",
-                            lineNumber: 200,
+                            lineNumber: 209,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/excursa-uba-application/app/page.tsx",
-                    lineNumber: 190,
+                    lineNumber: 199,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/excursa-uba-application/app/page.tsx",
-            lineNumber: 99,
+            lineNumber: 108,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/excursa-uba-application/app/page.tsx",
-        lineNumber: 98,
+        lineNumber: 107,
         columnNumber: 5
     }, this);
 }
-_s(ExcursaUBAPage, "vRVG+opFhu7nG6Q+bbYTrunZQ+Y=");
+_s(ExcursaUBAPage, "wA1wKarYguu7rkmYACEw3+fSH0U=");
 _c = ExcursaUBAPage;
 var _c;
 __turbopack_context__.k.register(_c, "ExcursaUBAPage");
