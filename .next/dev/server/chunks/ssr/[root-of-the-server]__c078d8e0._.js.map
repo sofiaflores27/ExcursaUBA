@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///home/etec/Documentos/excursa-uba-application/app/page.tsx"],"sourcesContent":["import ExcursionesClient from \"./ExcursionesClient\";\n\nexport default async function Page() {\n  return <ExcursionesClient />;\n}\n"],"names":[],"mappings":";;;;;;;;;;;;AAEe,eAAe;IAC5B,qBAAO,+QAAC;;;;;AACV"}}]
+}

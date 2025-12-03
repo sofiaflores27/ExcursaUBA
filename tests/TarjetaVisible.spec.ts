@@ -1,0 +1,44 @@
+import { test, expect } from '@playwright/test';
+test.describe("Asistencia - Observar - Front", () => {
+test('Puedo ingresar los datos importantes de la salida (sin base de datos)', async ({ page }) => {
+  await page.goto('http://localhost:3000/');
+  await page.getByRole('button', { name: 'Añadir Nueva Excursión...' }).click();
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).fill('M');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).fill('Museo ');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).fill('Museo D');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).fill('Museo De ');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).fill('Museo De C');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre de la Excursión' }).fill('Museo De Ciencias');
+  await page.getByRole('spinbutton', { name: 'Número de Alumnos' }).click();
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill('A');
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill('Abril ');
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill('Abril M');
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).press('CapsLock');
+  await page.getByRole('textbox', { name: 'Nombre', exact: true }).fill('Abril Mosquera');
+  await page.getByText('RolSelecciona un rol').click();
+  await page.getByRole('combobox', { name: 'Rol' }).click();
+  await page.getByRole('option', { name: 'Profesora' }).click();
+  await page.getByRole('spinbutton', { name: 'Número de Alumnos' }).click();
+  await page.getByRole('spinbutton', { name: 'Número de Alumnos' }).fill('50');
+  await page.getByRole('textbox', { name: 'Fecha' }).click();
+  await page.getByRole('textbox', { name: 'Fecha' }).fill('25/11');
+  await page.getByRole('textbox', { name: 'Horario' }).click();
+  await page.getByRole('textbox', { name: 'Horario' }).fill('11:00');
+  await page.getByRole('button', { name: 'Agregar Excursión' }).click();
+  await page.getByText('N° Alumnos:50Adultos').click();
+  await page.getByText('Museo De CienciasN° Alumnos:').click();
+  await page.getByText('Museo De CienciasN° Alumnos:').click();
+  await page.getByText('Museo De CienciasN° Alumnos:').click();
+  await page.getByText('Museo De CienciasN° Alumnos:').click();
+});
+})
