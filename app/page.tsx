@@ -1,67 +1,92 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PlusIcon, Calendar, Clock, Users, X } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusIcon, Calendar, Clock, Users, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Excursion {
-  id: string
-  title: string
-  numStudents: number
-  responsibleAdults: { name: string; role: string }[]
-  date: string
-  time: string
+  id: string;
+  title: string;
+  numStudents: number;
+  responsibleAdults: { name: string; role: string }[];
+  date: string;
+  time: string;
 }
 
 export default function ExcursaUBAPage() {
-  const [excursions, setExcursions] = useState<Excursion[]>([])
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [excursions, setExcursions] = useState<Excursion[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newExcursion, setNewExcursion] = useState({
-    title: '',
-    numStudents: '',
-    date: '',
-    time: '',
-  })
+    title: "",
+    numStudents: "",
+    date: "",
+    time: "",
+  });
 
-  const [responsibleAdults, setResponsibleAdults] = useState<{ name: string; role: string }[]>([])
-  const [currentAdult, setCurrentAdult] = useState({ name: '', role: '' })
+  const [responsibleAdults, setResponsibleAdults] = useState<
+    { name: string; role: string }[]
+  >([]);
+  const [currentAdult, setCurrentAdult] = useState({ name: "", role: "" });
 
   // Cargar excursiones desde PocketBase
   useEffect(() => {
-    fetch("http://127.0.0.1:8090/api/collections/Salidas/records?page=1&perPage=30")
-      .then(res => res.json())
-      .then(data => {
+    fetch(
+      "http://127.0.0.1:8090/api/collections/Salidas/records?page=1&perPage=30"
+    )
+      .then((res) => res.json())
+      .then((data) => {
         const parsed = data.items.map((item: any) => ({
           id: item.id,
           title: item.Titulo_Salida,
           numStudents: 0, // Puedes agregar este campo si quieres usarlo
-          responsibleAdults: [{ name: item.Responsable, role: item.Rol_Reponsable }],
+          responsibleAdults: [
+            { name: item.Responsable, role: item.Rol_Reponsable },
+          ],
           date: item.Fecha_Salida,
           time: item.Horario_Salida,
-        }))
-        setExcursions(parsed)
+        }));
+        setExcursions(parsed);
       })
-      .catch(console.error)
-  }, [])
+      .catch(console.error);
+  }, []);
 
   const handleAddAdult = () => {
     if (currentAdult.name && currentAdult.role) {
-      setResponsibleAdults([...responsibleAdults, currentAdult])
-      setCurrentAdult({ name: '', role: '' })
+      setResponsibleAdults([...responsibleAdults, currentAdult]);
+      setCurrentAdult({ name: "", role: "" });
     }
-  }
+  };
 
   const handleRemoveAdult = (index: number) => {
-    setResponsibleAdults(responsibleAdults.filter((_, i) => i !== index))
-  }
+    setResponsibleAdults(responsibleAdults.filter((_, i) => i !== index));
+  };
 
   const handleAddExcursion = () => {
-    if (newExcursion.title && newExcursion.numStudents && newExcursion.date && newExcursion.time) {
+    if (
+      newExcursion.title &&
+      newExcursion.numStudents &&
+      newExcursion.date &&
+      newExcursion.time
+    ) {
       fetch("http://127.0.0.1:8090/api/collections/Salidas/records", {
         method: "POST",
         headers: {
@@ -75,33 +100,33 @@ export default function ExcursaUBAPage() {
           Titulo_Salida: newExcursion.title,
         }),
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           const newItem: Excursion = {
             id: data.id,
             title: data.Titulo_Salida,
             numStudents: 0,
             responsibleAdults: [
-              { name: data.Responsable, role: data.Rol_Reponsable }
+              { name: data.Responsable, role: data.Rol_Reponsable },
             ],
             date: data.Fecha_Salida,
-            time: data.Horario_Salida
-          }
-          setExcursions([...excursions, newItem])
-          setNewExcursion({ title: '', numStudents: '', date: '', time: '' })
-          setResponsibleAdults([])
-          setIsDialogOpen(false)
+            time: data.Horario_Salida,
+          };
+          setExcursions([...excursions, newItem]);
+          setNewExcursion({ title: "", numStudents: "", date: "", time: "" });
+          setResponsibleAdults([]);
+          setIsDialogOpen(false);
         })
-        .catch(console.error)
+        .catch(console.error);
     }
-  }
+  };
 
   const cardColors = [
-    'bg-[oklch(0.35_0.12_255)]', // Dark navy blue
-    'bg-[oklch(0.75_0.08_220)]', // Light cyan
-    'bg-[oklch(0.65_0.15_210)]', // Medium turquoise
-    'bg-[oklch(0.50_0.10_240)]', // Medium blue
-  ]
+    "bg-[oklch(0.35_0.12_255)]", // Dark navy blue
+    "bg-[oklch(0.75_0.08_220)]", // Light cyan
+    "bg-[oklch(0.65_0.15_210)]", // Medium turquoise
+    "bg-[oklch(0.50_0.10_240)]", // Medium blue
+  ];
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -109,9 +134,9 @@ export default function ExcursaUBAPage() {
         {/* Header */}
         <header className="mb-12 text-center">
           <div className="mb-3 flex items-center justify-center gap-4">
-            <img 
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen-OlQUL6sPmlnGOi07AcEqtFxPWo5KND.png" 
-              alt="Logo UBA" 
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen-OlQUL6sPmlnGOi07AcEqtFxPWo5KND.png"
+              alt="Logo UBA"
               className="h-16 w-16 md:h-20 md:w-20"
             />
             <h1 className="font-bold tracking-tight text-[oklch(0.27_0.12_255)] text-5xl md:text-6xl">
@@ -119,23 +144,26 @@ export default function ExcursaUBAPage() {
             </h1>
           </div>
           <p className="text-balance text-foreground/80 text-lg">
-            Sistema de organización de viajes y salidas grupales - Escuela Técnica UBA
+            Sistema de organización de viajes y salidas grupales - Escuela
+            Técnica UBA
           </p>
           <div className="mx-auto mt-8 flex w-full max-w-4xl justify-center overflow-hidden">
-            <img 
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen-NrxjocI9WvSeQrSG8capWhWf5TNVFf.png" 
-              alt="Decorative divider" 
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen-NrxjocI9WvSeQrSG8capWhWf5TNVFf.png"
+              alt="Decorative divider"
               className="h-1 w-full object-cover object-center"
-              style={{ imageRendering: 'crisp-edges' }}
+              style={{ imageRendering: "crisp-edges" }}
             />
           </div>
         </header>
 
         <div className="mb-8 grid gap-6 md:grid-cols-2">
           {excursions.map((excursion, index) => (
-            <Card 
-              key={excursion.id} 
-              className={`border-4 border-white shadow-lg transition-all hover:shadow-2xl ${cardColors[index % cardColors.length]}`}
+            <Card
+              key={excursion.id}
+              className={`border-4 border-white shadow-lg transition-all hover:shadow-2xl ${
+                cardColors[index % cardColors.length]
+              }`}
             >
               <CardHeader className="border-b-2 border-white/30 bg-white/10">
                 <CardTitle className="text-balance text-center text-2xl font-bold text-white">
@@ -148,8 +176,12 @@ export default function ExcursaUBAPage() {
                   <div className="flex flex-1 flex-col items-center gap-2">
                     <Users className="h-6 w-6 text-white" />
                     <div className="text-center">
-                      <p className="text-sm font-bold text-white/80">N° Alumnos:</p>
-                      <p className="text-3xl font-bold text-white">{excursion.numStudents}</p>
+                      <p className="text-sm font-bold text-white/80">
+                        N° Alumnos:
+                      </p>
+                      <p className="text-3xl font-bold text-white">
+                        {excursion.numStudents}
+                      </p>
                     </div>
                   </div>
 
@@ -163,7 +195,10 @@ export default function ExcursaUBAPage() {
                     </p>
                     <div className="space-y-1 text-center">
                       {excursion.responsibleAdults.map((adult, index) => (
-                        <p key={index} className="text-sm font-medium text-white">
+                        <p
+                          key={index}
+                          className="text-sm font-medium text-white"
+                        >
                           {adult.name} ({adult.role})
                         </p>
                       ))}
@@ -176,7 +211,9 @@ export default function ExcursaUBAPage() {
                     <Calendar className="h-5 w-5 text-white" />
                     <div className="text-center">
                       <p className="text-xs font-bold text-white/80">Fecha:</p>
-                      <p className="text-lg font-bold text-white">{excursion.date}</p>
+                      <p className="text-lg font-bold text-white">
+                        {excursion.date}
+                      </p>
                     </div>
                   </div>
 
@@ -186,8 +223,12 @@ export default function ExcursaUBAPage() {
                   <div className="flex flex-1 flex-col items-center gap-2">
                     <Clock className="h-5 w-5 text-white" />
                     <div className="text-center">
-                      <p className="text-xs font-bold text-white/80">Horario:</p>
-                      <p className="text-lg font-bold text-white">{excursion.time}</p>
+                      <p className="text-xs font-bold text-white/80">
+                        Horario:
+                      </p>
+                      <p className="text-lg font-bold text-white">
+                        {excursion.time}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -210,8 +251,8 @@ export default function ExcursaUBAPage() {
             <DialogHeader>
               <DialogTitle>Nueva Excursión</DialogTitle>
               <DialogDescription>
-                Ingresa los detalles de la nueva excursión para los estudiantes de la Escuela
-                Técnica UBA.
+                Ingresa los detalles de la nueva excursión para los estudiantes
+                de la Escuela Técnica UBA.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -234,14 +275,19 @@ export default function ExcursaUBAPage() {
                   placeholder="Ej: 30"
                   value={newExcursion.numStudents}
                   onChange={(e) =>
-                    setNewExcursion({ ...newExcursion, numStudents: e.target.value })
+                    setNewExcursion({
+                      ...newExcursion,
+                      numStudents: e.target.value,
+                    })
                   }
                 />
               </div>
 
               <div className="grid gap-3 rounded-lg border p-4">
-                <Label className="text-base font-semibold">Adultos Responsables</Label>
-                
+                <Label className="text-base font-semibold">
+                  Adultos Responsables
+                </Label>
+
                 {/* List of added adults */}
                 {responsibleAdults.length > 0 && (
                   <div className="space-y-2">
@@ -274,7 +320,10 @@ export default function ExcursaUBAPage() {
                       placeholder="Ej: María González"
                       value={currentAdult.name}
                       onChange={(e) =>
-                        setCurrentAdult({ ...currentAdult, name: e.target.value })
+                        setCurrentAdult({
+                          ...currentAdult,
+                          name: e.target.value,
+                        })
                       }
                     />
                   </div>
@@ -295,7 +344,9 @@ export default function ExcursaUBAPage() {
                         <SelectItem value="Preceptor">Preceptor</SelectItem>
                         <SelectItem value="Preceptora">Preceptora</SelectItem>
                         <SelectItem value="Coordinador">Coordinador</SelectItem>
-                        <SelectItem value="Coordinadora">Coordinadora</SelectItem>
+                        <SelectItem value="Coordinadora">
+                          Coordinadora
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -347,5 +398,5 @@ export default function ExcursaUBAPage() {
         </Dialog>
       </div>
     </div>
-  )
+  );
 }
