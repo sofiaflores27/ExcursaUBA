@@ -10,7 +10,7 @@ async function globalTeardown() {
 export async function eliminarSalidas() {
   const salidas = await pb.collection("Salidas").getFullList({
     filter:
-      "Titulo_Salida = 'Excursion 2' || Titulo_Salida = 'Museo De Ciencias'",
+      "Titulo_Salida = 'Excursion 2' || Titulo_Salida = 'Teatro'",
   });
 
   for (const salida of salidas) {
