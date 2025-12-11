@@ -99,7 +99,7 @@ export default function ExcursaUBAPage() {
           Horario_Salida: newExcursion.time,
           Responsable: responsibleAdults
             .map((adult) => `${adult.name} (${adult.role})`)
-            .join(", "), // Guardamos todos los responsables
+            .join(", "),
           Titulo_Salida: newExcursion.title,
           Cantidad_Alumnos: Number(newExcursion.numStudents),
         }),
@@ -128,6 +128,41 @@ export default function ExcursaUBAPage() {
     }
   };
 
+  // NUEVO MÉTODO PARA LA NUEVA PROPOSICIÓN
+  const handleAddPropuesta = () => {
+    // Validación de la nueva propuesta (si es necesario)
+    if (
+      newExcursion.title &&
+      newExcursion.numStudents >= 0 &&
+      newExcursion.date &&
+      newExcursion.time
+    ) {
+      fetch("http://127.0.0.1:8090/api/collections/Salidas_Alumnos/records", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Fecha_Salida: newExcursion.date,
+          Horario_Salida: newExcursion.time,
+          Responsable: responsibleAdults
+            .map((adult) => `${adult.name} (${adult.role})`)
+            .join(", "),
+          Titulo_Salida: newExcursion.title,
+          Cantidad_Alumnos: Number(newExcursion.numStudents),
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          // Aquí puedes hacer algo con la respuesta, como actualizar la lista
+          alert("Nueva propuesta agregada exitosamente.");
+          setNewExcursion({ title: "", numStudents: 0, date: "", time: "" });
+          setResponsibleAdults([]);
+        })
+        .catch(console.error);
+    }
+  };
+
   const cardColors = [
     "bg-[oklch(0.35_0.12_255)]",
     "bg-[oklch(0.75_0.08_220)]",
@@ -139,7 +174,7 @@ export default function ExcursaUBAPage() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
         {/* HEADER */}
-        <header className="mb-12 text-center">
+        <header className="mb-10 text-center">
           <div className="mb-3 flex items-center justify-center gap-4">
             <img
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen-OlQUL6sPmlnGOi07AcEqtFxPWo5KND.png"
@@ -155,8 +190,11 @@ export default function ExcursaUBAPage() {
             Sistema de organización de viajes y salidas grupales - Escuela
             Técnica UBA
           </p>
+        </header>
 
-          <div className="mx-auto mt-8 flex w-full max-w-4xl justify-center overflow-hidden">
+        {/* Imagen divisoria arriba */}
+        <header className="mb-12 text-center">
+          <div className="mx-auto mt-15 flex w-full max-w-4xl justify-center overflow-hidden">
             <img
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen-NrxjocI9WvSeQrSG8capWhWf5TNVFf.png"
               alt="Decorative divider"
@@ -236,186 +274,27 @@ export default function ExcursaUBAPage() {
           ))}
         </div>
 
-        {/* DIALOG */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              size="lg"
-              className="w-full border-4 border-white bg-[oklch(0.65_0.15_210)] py-8 text-lg font-bold text-white shadow-lg"
-            >
-              <PlusIcon className="mr-2 h-6 w-6" />
-              Añadir Nueva Excursión...
-            </Button>
-          </DialogTrigger>
+        {/* Imagen divisoria abajo */}
+        <div className="mx-auto mt-8 flex w-full max-w-4xl justify-center overflow-hidden">
+          <img
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imagen-NrxjocI9WvSeQrSG8capWhWf5TNVFf.png"
+            alt="Decorative divider"
+            className="h-1 w-full object-cover object-center"
+            style={{ imageRendering: "crisp-edges" }}
+          />
+        </div>
 
-          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Nueva Excursión</DialogTitle>
-              <DialogDescription>
-                Ingresa los detalles de la nueva excursión.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="grid gap-4 py-4">
-              {/* NAME */}
-              <div className="grid gap-2">
-                <Label htmlFor="title">Nombre de la Excursión</Label>
-                <Input
-                  id="title"
-                  placeholder="Ej: Museo de Ciencias Naturales"
-                  value={newExcursion.title}
-                  onChange={(e) =>
-                    setNewExcursion({ ...newExcursion, title: e.target.value })
-                  }
-                />
-              </div>
-
-              {/* STUDENTS */}
-              <div className="grid gap-2">
-                <Label htmlFor="students">Número de Alumnos</Label>
-                <Input
-                  id="students"
-                  type="number"
-                  placeholder="Ej: 30"
-                  value={
-                    newExcursion.numStudents === 0
-                      ? ""
-                      : newExcursion.numStudents
-                  }
-                  onChange={(e) =>
-                    setNewExcursion({
-                      ...newExcursion,
-                      numStudents:
-                        e.target.value === "" ? 0 : Number(e.target.value),
-                    })
-                  }
-                />
-              </div>
-
-              {/* ADULTOS */}
-              <div className="grid gap-3 rounded-lg border p-4">
-                <Label className="text-base font-semibold">
-                  Adultos Responsables
-                </Label>
-
-                {responsibleAdults.length > 0 && (
-                  <div className="space-y-2">
-                    {responsibleAdults.map((adult, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded bg-muted p-2"
-                      >
-                        <span className="text-sm">
-                          {adult.name} - {adult.role}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveAdult(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* FORM ADULTO */}
-                <div className="grid gap-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="adult-name">Nombre</Label>
-                    <Input
-                      id="adult-name"
-                      placeholder="Ej: María González"
-                      value={currentAdult.name}
-                      onChange={(e) =>
-                        setCurrentAdult({
-                          ...currentAdult,
-                          name: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="adult-role">Rol</Label>
-                    <Select
-                      value={currentAdult.role}
-                      onValueChange={(v) =>
-                        setCurrentAdult({ ...currentAdult, role: v })
-                      }
-                    >
-                      <SelectTrigger id="adult-role">
-                        <SelectValue placeholder="Selecciona un rol" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Profesor">Profesor</SelectItem>
-                        <SelectItem value="Profesora">Profesora</SelectItem>
-                        <SelectItem value="Preceptor">Preceptor</SelectItem>
-                        <SelectItem value="Preceptora">Preceptora</SelectItem>
-                        <SelectItem value="Coordinador">Coordinador</SelectItem>
-                        <SelectItem value="Coordinadora">
-                          Coordinadora
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleAddAdult}
-                    disabled={!currentAdult.name || !currentAdult.role}
-                  >
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Agregar Adulto
-                  </Button>
-                </div>
-              </div>
-
-              {/* FECHA & HORA */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="date">Fecha</Label>
-                  <Input
-                    id="date"
-                    placeholder="DD/MM"
-                    value={newExcursion.date}
-                    onChange={(e) =>
-                      setNewExcursion({
-                        ...newExcursion,
-                        date: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="time">Horario</Label>
-                  <Input
-                    id="time"
-                    placeholder="HH:MMhs"
-                    value={newExcursion.time}
-                    onChange={(e) =>
-                      setNewExcursion({
-                        ...newExcursion,
-                        time: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleAddExcursion}>Agregar Excursión</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Botón "Agregar Nueva Propuesta..." */}
+        <div className="mt-8 flex justify-center">
+          <Button
+            size="lg"
+            className="w-full border-4 border-white bg-[oklch(0.65_0.15_210)] py-8 text-lg font-bold text-white shadow-lg"
+            onClick={handleAddPropuesta}
+          >
+            <PlusIcon className="mr-2 h-6 w-6" />
+            Agregar Nueva Propuesta...
+          </Button>
+        </div>
       </div>
     </div>
   );
