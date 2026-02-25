@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusIcon, Calendar, Clock, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from 'react-toastify';
 
 interface Excursion {
   id: string;
@@ -69,6 +70,8 @@ export default function ExcursaUBAPage() {
     "bg-[oklch(0.50_0.10_240)]",
   ];
 
+
+  const notify = () => toast("Wow so easy!");
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
@@ -207,6 +210,9 @@ export default function ExcursaUBAPage() {
             Agregar Nueva Propuesta...
           </Button>
         </div>
+
+         <button onClick={notify}>Notify!</button>
+        <ToastContainer />
 
       </div>
     </div>
