@@ -3,18 +3,43 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PocketBase from "pocketbase";
-import { Button } from "@/components/ui/button";
 
 export default function CrearSalida() {
   const router = useRouter();
-  const pb = new PocketBase("http://127.0.0.1:8090"); // URL de tu PocketBase
+  const pb = new PocketBase("http://127.0.0.1:8090");
 
-  const [titulo, setTitulo] = useState("");
-  const [comoLlegar, setComoLlegar] = useState("");
-  const [queLlevar, setQueLlevar] = useState("");
-  const [cuantoDura, setCuantoDura] = useState("");
+  const [form, setForm] = useState({
+    Titulo_Salida: "",
+    Como_Llegar: "",
+    Que_Llevar: [] as string[],
+    Cuanto_Dura: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleMultipleChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const values = Array.from(
+      e.target.selectedOptions,
+      (option) => option.value
+    );
+
+    setForm({
+      ...form,
+      Que_Llevar: values,
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,24 +47,13 @@ export default function CrearSalida() {
     setErrorMsg("");
 
     try {
-      const record = await pb.collection("Salidas_Alumnos").create({
-        Titulo_Salida: titulo,
-        Como_Llegar: comoLlegar,
-        Que_Llevar: queLlevar,
-        Cuanto_Dura: cuantoDura,
-      });
+      await pb.collection("Salidas_Alumnos").create(form);
 
-      console.log("Registro creado:", record);
-
-      // Redirigir solo si se creó correctamente
-      if (record && record.id) {
-        router.push("/"); // tu página principal
-      } else {
-        setErrorMsg("No se pudo crear el registro.");
-      }
+      router.push("/");
+      router.refresh();
     } catch (error: any) {
-      console.error("Error al guardar la salida:", error);
-      setErrorMsg("Error al guardar: " + (error.message || error));
+      console.error(error);
+      setErrorMsg("Error al guardar.");
     } finally {
       setLoading(false);
     }
@@ -53,53 +67,98 @@ export default function CrearSalida() {
       >
         <h1 className="text-xl font-bold mb-4">Nueva Salida</h1>
 
-        {errorMsg && <p className="text-red-500 mb-2">{errorMsg}</p>}
+        {errorMsg && (
+          <p className="text-red-500 mb-3 text-sm">{errorMsg}</p>
+        )}
 
-        <label className="block mb-2">
-          Título de la salida
-          <input
-            type="text"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            className="mt-1 block w-full border rounded px-2 py-1"
-            required
-          />
-        </label>
+        {/* Titulo */}
+        <input
+          type="text"
+          name="Titulo_Salida"
+          placeholder="Título de la salida"
+          value={form.Titulo_Salida}
+          onChange={handleChange}
+          className="border w-full mb-3 p-2 rounded"
+          required
+        />
 
-        <label className="block mb-2">
-          Cómo llegar
-          <textarea
-            value={comoLlegar}
-            onChange={(e) => setComoLlegar(e.target.value)}
-            className="mt-1 block w-full border rounded px-2 py-1"
-            required
-          />
-        </label>
+        {/* Como Llegar (Single) */}
+        <select
+          name="Como_Llegar"
+          value={form.Como_Llegar}
+          onChange={handleChange}
+          className="border w-full mb-3 p-2 rounded"
+          required
+        >
+          <option value="">Seleccionar cómo llegar</option>
+          <option value="Independiente">Independiente</option>
+          <option value="Colectivo (Todos Juntos))">
+            Colectivo (Todos Juntos)
+          </option>
+          <option value="Contratar Micro">Contratar Micro</option>
+        </select>
 
-        <label className="block mb-2">
-          Qué llevar
-          <textarea
-            value={queLlevar}
-            onChange={(e) => setQueLlevar(e.target.value)}
-            className="mt-1 block w-full border rounded px-2 py-1"
-            required
-          />
-        </label>
+        {/* Que Llevar (Multiple con checkboxes) */}
+<div className="mb-4">
+  <label className="block mb-2 font-semibold">
+    ¿Qué llevar?
+  </label>
 
-        <label className="block mb-4">
-          Cuánto dura
-          <input
-            type="text"
-            value={cuantoDura}
-            onChange={(e) => setCuantoDura(e.target.value)}
-            className="mt-1 block w-full border rounded px-2 py-1"
-            required
-          />
-        </label>
+  {[
+    "Mochila",
+    "Comida",
+    "Agua",
+    "Abrigo",
+    "Gorra",
+    "Repelente",
+  ].map((item) => (
+    <label key={item} className="flex items-center gap-2 mb-1">
+      <input
+        type="checkbox"
+        value={item}
+        checked={form.Que_Llevar.includes(item)}
+        onChange={(e) => {
+          if (e.target.checked) {
+            setForm({
+              ...form,
+              Que_Llevar: [...form.Que_Llevar, item],
+            });
+          } else {
+            setForm({
+              ...form,
+              Que_Llevar: form.Que_Llevar.filter(
+                (i) => i !== item
+              ),
+            });
+          }
+        }}
+      />
+      {item}
+    </label>
+  ))}
+</div>
 
-        <Button type="submit" disabled={loading}>
+        {/* Cuanto Dura (Single) */}
+        <select
+          name="Cuanto_Dura"
+          value={form.Cuanto_Dura}
+          onChange={handleChange}
+          className="border w-full mb-4 p-2 rounded"
+          required
+        >
+          <option value="">Seleccionar duración</option>
+          <option value="1 Hora">1 Hora</option>
+          <option value="2 Horas">2 Horas</option>
+          <option value="3 Horas">3 Horas</option>
+        </select>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-black text-white px-4 py-2 rounded w-full"
+        >
           {loading ? "Guardando..." : "Guardar"}
-        </Button>
+        </button>
       </form>
     </div>
   );
