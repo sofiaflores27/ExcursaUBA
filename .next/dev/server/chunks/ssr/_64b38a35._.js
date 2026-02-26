@@ -45,7 +45,7 @@ function CrearSalida() {
         setErrorMsg("");
         try {
             await pb.collection("Salidas_Alumnos").create(form);
-            router.push("/");
+            router.push("/?created=true");
             router.refresh();
         } catch (error) {
             console.error(error);

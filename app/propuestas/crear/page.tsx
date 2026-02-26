@@ -49,8 +49,8 @@ export default function CrearSalida() {
     try {
       await pb.collection("Salidas_Alumnos").create(form);
 
-      router.push("/");
-      router.refresh();
+router.push("/?created=true");      
+router.refresh();
     } catch (error: any) {
       console.error(error);
       setErrorMsg("Error al guardar.");

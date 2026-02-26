@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusIcon, Calendar, Clock, Users } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ToastContainer, toast } from 'react-toastify';
+import { useRouter, useSearchParams } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Excursion {
   id: string;
@@ -18,6 +19,7 @@ interface Excursion {
 
 export default function ExcursaUBAPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [excursiones, setExcursiones] = useState<Excursion[]>([]);
   const [salidasAlumnos, setSalidasAlumnos] = useState<any[]>([]);
@@ -25,7 +27,6 @@ export default function ExcursaUBAPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 🔹 EXCURSIONES (colección Salidas)
         const resSalidas = await fetch(
           "http://127.0.0.1:8090/api/collections/Salidas/records?page=1&perPage=30"
         );
@@ -47,7 +48,6 @@ export default function ExcursaUBAPage() {
 
         setExcursiones(salidasParseadas);
 
-        // 🔹 SALIDAS PROPUESTAS (Salidas_Alumnos)
         const resAlumnos = await fetch(
           "http://127.0.0.1:8090/api/collections/Salidas_Alumnos/records?page=1&perPage=30"
         );
@@ -63,6 +63,22 @@ export default function ExcursaUBAPage() {
     fetchData();
   }, []);
 
+  // Toast SOLO cuando viene de crear
+  useEffect(() => {
+    if (searchParams.get("created") === "true") {
+      toast.success("Nueva propuesta agregada correctamente!", {
+        style: {
+          background: "oklch(0.65 0.15 210)",
+          color: "white",
+          border: "2px solid white",
+        },
+      });
+
+      // Limpia la URL para que no vuelva a mostrarse al refrescar
+      router.replace("/", { scroll: false });
+    }
+  }, [searchParams, router]);
+
   const cardColors = [
     "bg-[oklch(0.35_0.12_255)]",
     "bg-[oklch(0.75_0.08_220)]",
@@ -70,13 +86,10 @@ export default function ExcursaUBAPage() {
     "bg-[oklch(0.50_0.10_240)]",
   ];
 
-
-  const notify = () => toast("Wow so easy!");
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
 
-        {/* HEADER */}
         <header className="mb-10 text-center">
           <h1 className="font-bold tracking-tight text-[oklch(0.27_0.12_255)] text-5xl md:text-6xl">
             ExcursaUBA
@@ -86,7 +99,6 @@ export default function ExcursaUBAPage() {
           </p>
         </header>
 
-        {/* ================= EXCURSIONES ================= */}
         <h2 className="text-3xl font-bold mb-6 text-center">
           Excursiones
         </h2>
@@ -162,7 +174,6 @@ export default function ExcursaUBAPage() {
           ))}
         </div>
 
-        {/* ================= SALIDAS PROPUESTAS ================= */}
         <h2 className="text-3xl font-bold mb-6 text-center">
           Salidas Propuestas
         </h2>
@@ -199,7 +210,6 @@ export default function ExcursaUBAPage() {
           ))}
         </div>
 
-        {/* BOTÓN */}
         <div className="mt-12 flex justify-center">
           <Button
             size="lg"
@@ -211,8 +221,11 @@ export default function ExcursaUBAPage() {
           </Button>
         </div>
 
-         <button onClick={notify}>Notify!</button>
-        <ToastContainer />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          theme="colored"
+        />
 
       </div>
     </div>
