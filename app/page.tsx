@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import PocketBase from "pocketbase";
 
 interface Excursion {
   id: string;
@@ -20,15 +21,17 @@ interface Excursion {
 export default function ExcursaUBAPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pb = new PocketBase("http://10.56.13.24:8090");
 
   const [excursiones, setExcursiones] = useState<Excursion[]>([]);
   const [salidasAlumnos, setSalidasAlumnos] = useState<any[]>([]);
 
+  // Cargar datos al montar
   useEffect(() => {
     const fetchData = async () => {
       try {
         const resSalidas = await fetch(
-          "http://127.0.0.1:8090/api/collections/Salidas/records?page=1&perPage=30"
+          "http://10.56.13.24:8090/api/collections/Salidas/records?page=1&perPage=30"
         );
         const dataSalidas = await resSalidas.json();
 
@@ -49,7 +52,7 @@ export default function ExcursaUBAPage() {
         setExcursiones(salidasParseadas);
 
         const resAlumnos = await fetch(
-          "http://127.0.0.1:8090/api/collections/Salidas_Alumnos/records?page=1&perPage=30"
+          "http://10.56.13.24:8090/api/collections/Salidas_Alumnos/records?page=1&perPage=30"
         );
         const dataAlumnos = await resAlumnos.json();
 
@@ -74,10 +77,36 @@ export default function ExcursaUBAPage() {
         },
       });
 
-      // Limpia la URL para que no vuelva a mostrarse al refrescar
       router.replace("/", { scroll: false });
     }
   }, [searchParams, router]);
+
+  // Suscripción en tiempo real para TODOS los usuarios
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    pb.collection('Salidas_Alumnos').subscribe('*', (e) => {
+      if (e.action === 'create') {
+        toast.info(`Nueva propuesta: ${e.record.Titulo_Salida}`, {
+          style: {
+            background: "oklch(0.65 0.15 210)",
+            color: "white",
+            border: "2px solid white",
+          },
+        });
+
+        // Actualizar estado para que la tarjeta aparezca automáticamente
+        setSalidasAlumnos(prev => [e.record, ...prev]);
+      }
+    }).then((unsubFunc) => {
+      unsubscribe = unsubFunc;
+    });
+
+    // Cleanup al desmontar
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   const cardColors = [
     "bg-[oklch(0.35_0.12_255)]",

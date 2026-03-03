@@ -17,7 +17,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$pocketbase$2
 ;
 function CrearSalida() {
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
-    const pb = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$pocketbase$2f$dist$2f$pocketbase$2e$es$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"]("http://127.0.0.1:8090");
+    const pb = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$pocketbase$2f$dist$2f$pocketbase$2e$es$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"]("http://10.56.13.24:8090");
     const [form, setForm] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({
         Titulo_Salida: "",
         Como_Llegar: "",
@@ -311,7 +311,7 @@ __turbopack_context__.s([
 ]);
 class ClientResponseError extends Error {
     constructor(e){
-        super("ClientResponseError"), this.url = "", this.status = 0, this.response = {}, this.isAbort = !1, this.originalError = null, Object.setPrototypeOf(this, ClientResponseError.prototype), null !== e && "object" == typeof e && (this.url = "string" == typeof e.url ? e.url : "", this.status = "number" == typeof e.status ? e.status : 0, this.isAbort = !!e.isAbort, this.originalError = e.originalError, null !== e.response && "object" == typeof e.response ? this.response = e.response : null !== e.data && "object" == typeof e.data ? this.response = e.data : this.response = {}), this.originalError || e instanceof ClientResponseError || (this.originalError = e), "undefined" != typeof DOMException && e instanceof DOMException && (this.isAbort = !0), this.name = "ClientResponseError " + this.status, this.message = this.response?.message, this.message || (this.isAbort ? this.message = "The request was autocancelled. You can find more info in https://github.com/pocketbase/js-sdk#auto-cancellation." : this.originalError?.cause?.message?.includes("ECONNREFUSED ::1") ? this.message = "Failed to connect to the PocketBase server. Try changing the SDK URL from localhost to 127.0.0.1 (https://github.com/pocketbase/js-sdk/issues/21)." : this.message = "Something went wrong."), this.cause = this.originalError;
+        super("ClientResponseError"), this.url = "", this.status = 0, this.response = {}, this.isAbort = !1, this.originalError = null, Object.setPrototypeOf(this, ClientResponseError.prototype), null !== e && "object" == typeof e && (this.originalError = e.originalError, this.url = "string" == typeof e.url ? e.url : "", this.status = "number" == typeof e.status ? e.status : 0, this.isAbort = !!e.isAbort || "AbortError" === e.name || "Aborted" === e.message, null !== e.response && "object" == typeof e.response ? this.response = e.response : null !== e.data && "object" == typeof e.data ? this.response = e.data : this.response = {}), this.originalError || e instanceof ClientResponseError || (this.originalError = e), this.name = "ClientResponseError " + this.status, this.message = this.response?.message, this.message || (this.isAbort ? this.message = "The request was aborted (most likely autocancelled; you can find more info in https://github.com/pocketbase/js-sdk#auto-cancellation)." : this.originalError?.cause?.message?.includes("ECONNREFUSED ::1") ? this.message = "Failed to connect to the PocketBase server. Try changing the SDK URL from localhost to 127.0.0.1 (https://github.com/pocketbase/js-sdk/issues/21)." : this.message = "Something went wrong."), this.cause = this.originalError;
     }
     get data() {
         return this.response;
@@ -818,7 +818,7 @@ class CrudService extends BaseService {
     }
     async getFullList(e, t) {
         if ("number" == typeof e) return this._getFullList(e, t);
-        let s = 500;
+        let s = 1e3;
         return (t = Object.assign({}, e, t)).batch && (s = t.batch, delete t.batch), this._getFullList(s, t);
     }
     async getList(e = 1, t = 30, s) {
@@ -878,11 +878,11 @@ class CrudService extends BaseService {
             method: "DELETE"
         }, t), this.client.send(this.baseCrudPath + "/" + encodeURIComponent(e), t).then(()=>!0);
     }
-    _getFullList(e = 500, t) {
+    _getFullList(e = 1e3, t) {
         (t = t || {}).query = Object.assign({
             skipTotal: 1
         }, t.query);
-        let s = [], request = async (i)=>this.getList(i, e || 500, t).then((e)=>{
+        let s = [], request = async (i)=>this.getList(i, e || 1e3, t).then((e)=>{
                 const t = e.items;
                 return s = s.concat(t), t.length == e.perPage ? request(i + 1) : s;
             });
@@ -1031,36 +1031,43 @@ class RecordService extends CrudService {
         return r && (n.requestKey = r), this.listAuthMethods(n).then((e)=>{
             const n = e.oauth2.providers.find((e)=>e.name === t.provider);
             if (!n) throw new ClientResponseError(new Error(`Missing or invalid provider "${t.provider}".`));
-            const o = this.client.buildURL("/api/oauth2-redirect"), a = r ? this.client.cancelControllers?.[r] : void 0;
-            return a && (a.signal.onabort = ()=>{
-                cleanup();
-            }), new Promise(async (e, r)=>{
+            const o = this.client.buildURL("/api/oauth2-redirect");
+            return new Promise(async (e, a)=>{
+                const c = r ? this.client.cancelControllers?.[r] : void 0;
+                c && (c.signal.onabort = ()=>{
+                    cleanup(), a(new ClientResponseError({
+                        isAbort: !0,
+                        message: "manually cancelled"
+                    }));
+                }), i.onDisconnect = (e)=>{
+                    e.length && a && (cleanup(), a(new ClientResponseError(new Error("realtime connection interrupted"))));
+                };
                 try {
                     await i.subscribe("@oauth2", async (s)=>{
-                        const c = i.clientId;
+                        const r = i.clientId;
                         try {
-                            if (!s.state || c !== s.state) throw new Error("State parameters don't match.");
+                            if (!s.state || r !== s.state) throw new Error("State parameters don't match.");
                             if (s.error || !s.code) throw new Error("OAuth2 redirect error or missing code: " + s.error);
                             const i = Object.assign({}, t);
-                            delete i.provider, delete i.scopes, delete i.createData, delete i.urlCallback, a?.signal?.onabort && (a.signal.onabort = null);
-                            const r = await this.authWithOAuth2Code(n.name, s.code, n.codeVerifier, o, t.createData, i);
-                            e(r);
+                            delete i.provider, delete i.scopes, delete i.createData, delete i.urlCallback, c?.signal?.onabort && (c.signal.onabort = null);
+                            const a = await this.authWithOAuth2Code(n.name, s.code, n.codeVerifier, o, t.createData, i);
+                            e(a);
                         } catch (e) {
-                            r(new ClientResponseError(e));
+                            a(new ClientResponseError(e));
                         }
                         cleanup();
                     });
-                    const c = {
+                    const r = {
                         state: i.clientId
                     };
-                    t.scopes?.length && (c.scope = t.scopes.join(" "));
-                    const l = this._replaceQueryParams(n.authURL + o, c);
+                    t.scopes?.length && (r.scope = t.scopes.join(" "));
+                    const l = this._replaceQueryParams(n.authURL + o, r);
                     let h = t.urlCallback || function(e) {
                         s ? s.location.href = e : s = openBrowserPopup(e);
                     };
                     await h(l);
                 } catch (e) {
-                    cleanup(), r(new ClientResponseError(e));
+                    c?.signal?.onabort && (c.signal.onabort = null), cleanup(), a(new ClientResponseError(e));
                 }
             });
         }).catch((e)=>{
@@ -1268,12 +1275,9 @@ class FileService extends BaseService {
         const i = [];
         i.push("api"), i.push("files"), i.push(encodeURIComponent(e.collectionId || e.collectionName)), i.push(encodeURIComponent(e.id)), i.push(encodeURIComponent(t));
         let n = this.client.buildURL(i.join("/"));
-        if (Object.keys(s).length) {
-            !1 === s.download && delete s.download;
-            const e = new URLSearchParams(s);
-            n += (n.includes("?") ? "&" : "?") + e;
-        }
-        return n;
+        !1 === s.download && delete s.download;
+        const r = serializeQueryParams(s);
+        return r && (n += (n.includes("?") ? "&" : "?") + r), n;
     }
     async getToken(e) {
         return e = Object.assign({
@@ -1540,7 +1544,7 @@ class Client {
             try {
                 s = await e.json();
             } catch (e) {
-                if (t.signal?.aborted || "undefined" != typeof DOMException && e instanceof DOMException) throw e;
+                if (t.signal?.aborted || "AbortError" == e?.name || "Aborted" == e?.message) throw e;
             }
             if (this.afterSend && (s = await this.afterSend(e, s, t)), e.status >= 400) throw new ClientResponseError({
                 url: e.url,

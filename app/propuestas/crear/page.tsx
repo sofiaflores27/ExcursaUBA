@@ -6,7 +6,7 @@ import PocketBase from "pocketbase";
 
 export default function CrearSalida() {
   const router = useRouter();
-  const pb = new PocketBase("http://127.0.0.1:8090");
+  const pb = new PocketBase("http://10.56.13.24:8090");
 
   const [form, setForm] = useState({
     Titulo_Salida: "",
